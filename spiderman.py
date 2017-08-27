@@ -13,28 +13,30 @@ class LinkParser():
     def check_duplicate(self):
         pass
 
-    def enqueue(self):
-        pass
+    def check_is_same_domain(self, test_url):
+        host_url = urlparse(self.hostname).hostname
+        host_domain = host_url.rsplit('.', 3)[1:]
 
+        test_url = urlparse(test_url).hostname
+        test_domain = host_url.rsplit('.', 3)[1:]
+
+        if(host_domain == test_domain):
+            return True
+        return False
+
+    def enqueue(self, url):
+        if(self.check_is_same_domain(absolute_url) and self.check_duplicate()):
+            self.links.append(absolute_url)
+            
     def get_link(self):
         data  = requests.get("http://" + self.url)
         soup = BeautifulSoup(data.text, 'lxml')
         for tag in soup.findAll('a', href=True):
             absolute_url = urljoin(self.hostname, tag['href'])
-            enqueue(absolute_url)
+            self.enqueue(absolute_url)
     
 
 linkParser = LinkParser('ku.ac.th/web2012/index.php?c=adms&m=mainpage1', 'www.ku.ac.th')
 linkParser.get_link()
 
 #def check(url):
-#    t = urlparse(url).hostname
-#    return t
-#
-#ku_domain = check(ku)
-#cpe_domain = check(cpe)
-#
-#ku_domain = ku_domain.rsplit('.', 3)[1:]
-#cpe_domain = cpe_domain.rsplit('.', 3)[1:]
-#if ku_domain == cpe_domain:
-#    print('fucking work eiei')

@@ -10,11 +10,11 @@ class LinkParser():
         self.hostname = hostname
         self.links = []
 
-    def check_duplicate(self):
+    def check_duplicate(self, url):
         pass
 
     def check_is_same_domain(self, test_url):
-        host_url = urlparse(self.hostname).hostname
+        host_url = urlparse('http://' + self.hostname).hostname
         host_domain = host_url.rsplit('.', 3)[1:]
 
         test_url = urlparse(test_url).hostname
@@ -25,8 +25,8 @@ class LinkParser():
         return False
 
     def enqueue(self, url):
-        if(self.check_is_same_domain(absolute_url) and self.check_duplicate()):
-            self.links.append(absolute_url)
+        if(self.check_is_same_domain(url) and self.check_duplicate(url)):
+            self.links.append(url)
             
     def get_link(self):
         data  = requests.get("http://" + self.url)
@@ -38,5 +38,3 @@ class LinkParser():
 
 linkParser = LinkParser('ku.ac.th/web2012/index.php?c=adms&m=mainpage1', 'www.ku.ac.th')
 linkParser.get_link()
-
-#def check(url):

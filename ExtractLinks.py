@@ -18,7 +18,6 @@ class ExtractLinks():
 
         return False
 
-
     def check_is_same_domain(self, test_url):
         test_domain = tldextract.extract(test_url).domain
 
@@ -41,6 +40,7 @@ class ExtractLinks():
         for tag in soup.findAll('a', href=True):
             absolute_url = urljoin(self.hostname, tag['href'])
             self.enqueue(absolute_url)
-
         return self.links
     
+    def hello_world(self):
+        print 'working baby'

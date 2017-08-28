@@ -55,7 +55,6 @@ class Crawler(object):
         no_cache: function returning True if the url should be refreshed
         """
         u_parse = urlparse(url)
-        print(u_parse.path)
         self.domain = u_parse.netloc
         self.content[self.domain] = {}
         self.scheme = u_parse.scheme

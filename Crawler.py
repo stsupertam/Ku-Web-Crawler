@@ -1,17 +1,15 @@
 from ExtractLinks import ExtractLinks
 
-linkParser = ExtractLinks('ku.ac.th/web2012/index.php?c=adms&m=mainpage1', 'ku')
-ku_url = linkParser.get_link()
-for item in ku_url:
-    print('Url : ' + item)
+linkParser = ExtractLinks('ku')
+depth = 5
+urls = []
+for i in range(1, depth + 1):
+    urls[i] = []
 
-linkParser = ExtractLinks('http://ku.ac.th/web2012/index.php?c=adms&m=changepage&page=home&lang=eng', 'ku')
-ku_url = linkParser.get_link()
-for item in ku_url:
-    print('Url : ' + item)
-
-linkParser = ExtractLinks('https://stackoverflow.com/questions/6797984/how-to-convert-string-to-lowercase-in-python', 'ku')
-ku_url = linkParser.get_link()
-
-for item in ku_url:
-    print('Url : ' + item)
+#urls = {}
+urls[0] = linkParser.get_link('ku.ac.th/web2012/index.php?c=adms&m=mainpage1')
+#
+#for key in urls:
+#    for item in urls[key]:
+#        urls['2'] = 'Gundam'
+#        print("Url Depth %s : %s" % (key, item))

@@ -36,11 +36,15 @@ class ExtractLinks():
 
     def get_link(self, url):
         url = urlparse(url).path
-        data  = requests.get(('%s://%s%s' % (self.scheme, self.domain, url)))
-        soup = BeautifulSoup(data.text, 'lxml')
+        try:
+            data  = requests.get(('%s://%s%s' % (self.scheme, self.domain, url)))
+            soup = BeautifulSoup(data.text, 'lxml')
 
-        for tag in soup.findAll('a', href=True):
-            absolute_url = urljoin(self.hostname, tag['href'])
-            print absolute_url
-            self.enqueue(absolute_url)
+            for tag in soup.findAll('a', href=True):
+                absolute_url = urljoin(self.hostname, tag['href'])
+                self.enqueue(absolute_url)
+
+        except Exception:
+            pass
+
         return self.links

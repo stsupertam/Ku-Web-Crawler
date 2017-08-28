@@ -14,7 +14,7 @@ class Spider():
         n_urls = set()
         if(max_depth >= 0):
             for url in urls:
-                print url
+                print('DEPTH : %d URL : %s' % (max_depth, url))
                 link = self.extractor.get_link(url)
                 n_urls = n_urls.union(link)
             self.crawl(n_urls, max_depth - 1)

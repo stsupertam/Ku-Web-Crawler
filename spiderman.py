@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup
 from urlparse import urlparse
 from urlparse import urljoin
+import tldextract
 import requests
 
 class LinkParser():
@@ -12,7 +13,7 @@ class LinkParser():
         self.links = []
         self.urls_set = set()
 
-    def check_duplicate(self, url):
+    def check_is_duplicate(self, url):
         if(url not in self.urls_set):
             self.urls_set.add(url)
             return True
@@ -20,19 +21,14 @@ class LinkParser():
 
 
     def check_is_same_domain(self, test_url):
-        host_url = urlparse('http://' + self.hostname).hostname
-        host_domain = host_url.rsplit('.', 3)[1:]
-
-        test_url = urlparse(test_url).hostname
-        test_domain = host_url.rsplit('.', 3)[1:]
-
-        if(host_domain == test_domain):
+        test_domain = tldextract.extract(test_url).domain
+        if(self.hostname == test_domain):
             return True
         return False
 
     def enqueue(self, url):
 
-        if(self.check_is_same_domain(url) and self.check_duplicate(url)):
+        if(self.check_is_same_domain(url) and self.check_is_duplicate(url)):
             self.links.append(url)
             
     def get_link(self):
@@ -45,7 +41,7 @@ class LinkParser():
             self.enqueue(absolute_url)
         return self.links
     
-linkParser = LinkParser('ku.ac.th/web2012/index.php?c=adms&m=mainpage1', 'www.ku.ac.th')
+linkParser = LinkParser('ku.ac.th/web2012/index.php?c=adms&m=mainpage1', 'ku')
 ku_url = linkParser.get_link()
 
 for item in ku_url:

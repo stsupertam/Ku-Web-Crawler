@@ -9,10 +9,11 @@ import requests
 
 class Spider():
 
-    def __init__(self, url, max_depth = 2, total_pages = 1000):
+    def __init__(self, url, max_depth = 2, total_pages = 50):
         self.max_depth = max_depth
         self.url = url
         self.total_pages = total_pages
+        self.pages = 0
         self.content = {}
 
     def startCrawl(self):
@@ -29,31 +30,30 @@ class Spider():
             for url in urls:
                 link = self.get_link(url)
                 n_urls = n_urls.union(link)
-                print('DEPTH (%d) URL %s' % (depth, url))
+                print('DEPTH (%d) (%d) URL %s' % (depth, self.pages, url))
             self.crawl(n_urls, depth - 1)
-       
+
     def get_link(self, url):
         links = []
         u_parse = urlparse(url)
         url = u_parse.path + u_parse.query
         try:
-            data  = requests.get(('%s://%s%s' % (self.scheme, self.domain, url)))
-            soup = BeautifulSoup(data.text, 'lxml')
+            if(self.pages <= self.total_pages):
+                data  = requests.get(('%s://%s%s' % (self.scheme, self.domain, url)))
+                soup = BeautifulSoup(data.text, 'lxml')
 
-            for tag in soup.findAll('a', href=True):
-                absolute_url = urljoin(self.domain, tag['href'])
-                #print absolute_url
-                if(absolute_url not in self.url_sets):
-                    #print('URL : %s' % absolute_url)
-                    self.url_sets.add(absolute_url)
-                    links.append(absolute_url)
+                for tag in soup.findAll('a', href=True):
+                    absolute_url = urljoin(self.domain, tag['href'])
+                    if(absolute_url not in self.url_sets):
+                        if(self.pages <= self.total_pages):
+                            self.url_sets.add(absolute_url)
+                            links.append(absolute_url)
+                            self.pages += 1
         except Exception:
             pass
         return links
 
 
-#extractLinks = ExtractLinks('https://stackoverflow.com/')
 spider = Spider('https://stackoverflow.com/')
 spider.startCrawl()
-#spider = Spider('http://www.gconhub.com/?page=home', extractLinks)
-print('Crawl Stackoverflow Successful')
+print('Crawl Stackoverflow Successful')                 

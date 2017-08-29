@@ -44,18 +44,20 @@ class Spider():
         if(tldextract.extract(self.domain).domain == tldextract.extract(domain).domain):
             try:
                 print('Retrieving [%s] %s' % (domain, url))
-                data  = requests.get(('%s://%s%s' % (self.scheme, domain, url)), timeout=10)
-                soup = BeautifulSoup(data.text, 'lxml')
+                file_extension = url.split('.')[-1]
+                if(file_extension not in ['php', 'jpg', 'jpeg', 'png', 'gif']):
+                    data  = requests.get(('%s://%s%s' % (self.scheme, domain, url)), timeout=10)
+                    soup = BeautifulSoup(data.text, 'lxml')
 
-                self.writeToFile(domain, soup)
+                    self.writeToFile(domain, soup)
 
-                for tag in soup.findAll('a', href=True):
-                    absolute_url = urljoin(self.domain, tag['href'])
-                    if(absolute_url not in self.url_sets):
-                        if(self.pages <= self.total_pages):
-                            self.url_sets.add(absolute_url)
-                            links.append(absolute_url)
-                            self.pages += 1
+                    for tag in soup.findAll('a', href=True):
+                        absolute_url = urljoin(self.domain, tag['href'])
+                        if(absolute_url not in self.url_sets):
+                            if(self.pages <= self.total_pages):
+                                self.url_sets.add(absolute_url)
+                                links.append(absolute_url)
+                                self.pages += 1
 
             except Exception:
                 print sys.exc_info()[0] 

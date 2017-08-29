@@ -15,6 +15,8 @@ class Spider():
         self.url = url
         self.total_pages = total_pages
         self.pages = 0
+        self.total_file = 0
+        self.headers = {"Range": "bytes=0-100"}
 
     def startCrawl(self):
         u_parse = urlparse(self.url)
@@ -46,7 +48,7 @@ class Spider():
                 file_extension = url.split('.')[-1]
                 if(file_extension.lower() not in ['pdf', 'jpg', 'jpeg', 'png', 'gif']):
                     print('Retrieving [%s] %s' % (domain, url))
-                    data  = requests.get(('%s://%s%s' % (self.scheme, domain, url)), timeout=10)
+                    data  = requests.get(('%s://%s%s' % (self.scheme, domain, url)), timeout=5, headers=self.headers)
                     soup = BeautifulSoup(data.text, 'lxml')
 
                     self.writeToFile(domain, soup)
@@ -73,7 +75,8 @@ class Spider():
         html = soup.prettify('utf-8')
         h = hashlib.md5(html).hexdigest()
         fileName = directory + '/' + h + '.html'
-        print('Create file : [%s]' % h)
+        self.total_file += 1
+        print('Create file [%d] : [%s]' % (self.total_file, h))
         with open(fileName, "wb") as file:
             file.write(html)
 

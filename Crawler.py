@@ -1,5 +1,6 @@
 import os
 import hashlib
+import time
 import sys
 import requests
 import tldextract
@@ -42,7 +43,7 @@ class Spider():
         
         if(tldextract.extract(self.domain).domain == tldextract.extract(domain).domain):
             try:
-                print('Retrieving [%s] %s' % (self.pages, domain, url))
+                print('Retrieving [%s] %s' % (domain, url))
                 data  = requests.get(('%s://%s%s' % (self.scheme, domain, url)))
                 soup = BeautifulSoup(data.text, 'lxml')
 
@@ -74,8 +75,9 @@ class Spider():
         with open(fileName, "wb") as file:
             file.write(html)
 
-
-
-spider = Spider('https://stackoverflow.com/')
+start_time = time.time()
+site = 'https://stackoverflow.com/'
+spider = Spider(site)
 spider.startCrawl()
-print('Crawl Stackoverflow Successful')                 
+print('Crawl [%s] Successful' % urlparse(site).netloc) 
+print("--- %s seconds ---" % (time.time() - start_time))

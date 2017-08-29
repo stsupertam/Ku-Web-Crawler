@@ -31,17 +31,20 @@ class ExtractLinks():
         return False
 
     def enqueue(self, url):
-        if(self.check_is_same_domain(url) and self.check_is_duplicate(url)):
+        #if(self.check_is_same_domain(url) and self.check_is_duplicate(url)):
+        if(self.check_is_same_domain(url)):
             self.links.append(url)
+            print url
 
     def get_link(self, url):
-        url = urlparse(url).path
+        u_parse = urlparse(url)
+        url = u_parse.path + u_parse.query
         try:
             data  = requests.get(('%s://%s%s' % (self.scheme, self.domain, url)))
             soup = BeautifulSoup(data.text, 'lxml')
 
             for tag in soup.findAll('a', href=True):
-                absolute_url = urljoin(self.hostname, tag['href'])
+                absolute_url = urljoin(self.domain, tag['href'])
                 self.enqueue(absolute_url)
 
         except Exception:

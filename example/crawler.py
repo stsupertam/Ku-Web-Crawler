@@ -31,7 +31,7 @@ def get_local_links(html, domain):
         u_parse = urlparse(href)
         if href.startswith('/'):
             # purposefully using path, no query, no hash
-            hrefs.add(u_parse.path)
+            hrefs.add(u_parse.path + u_parse.query)
         else:
           # only keep the local urls
           if u_parse.netloc == domain:

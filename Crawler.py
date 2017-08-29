@@ -44,7 +44,7 @@ class Spider():
         if(tldextract.extract(self.domain).domain == tldextract.extract(domain).domain):
             try:
                 print('Retrieving [%s] %s' % (domain, url))
-                data  = requests.get(('%s://%s%s' % (self.scheme, domain, url)))
+                data  = requests.get(('%s://%s%s' % (self.scheme, domain, url)), timeout=10)
                 soup = BeautifulSoup(data.text, 'lxml')
 
                 self.writeToFile(domain, soup)
@@ -65,19 +65,19 @@ class Spider():
     def writeToFile(self, domain, soup):
         directory = 'data/' + domain
         if(not os.path.exists(directory)):
-            print('Create [%s] directory' % domain)
+            print('Create directory : [%s]' % domain)
             os.makedirs('data/' + domain)
         
         html = soup.prettify('utf-8')
         h = hashlib.md5(html).hexdigest()
         fileName = directory + '/' + h + '.html'
-        print('Create [%s] file' % h)
+        print('Create file : [%s]' % h)
         with open(fileName, "wb") as file:
             file.write(html)
 
 start_time = time.time()
-site = 'https://stackoverflow.com/'
-spider = Spider(site)
+site = 'http://www.ku.ac.th/web2012/index.php?c=adms&m=mainpage1'
+spider = Spider(site, 5, 15000)
 spider.startCrawl()
 print('Crawl [%s] Successful' % urlparse(site).netloc) 
 print("--- %s seconds ---" % (time.time() - start_time))

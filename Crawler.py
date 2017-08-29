@@ -6,7 +6,7 @@ import requests
 
 class Spider():
 
-    def __init__(self, url, max_depth = 2, total_pages = 1000):
+    def __init__(self, url, max_depth = 2, total_pages = 10):
         self.max_depth = max_depth
         self.url = url
         self.total_pages = total_pages
@@ -43,7 +43,7 @@ class Spider():
                 data  = requests.get(('%s://%s%s' % (self.scheme, domain, url)))
                 soup = BeautifulSoup(data.text, 'lxml')
 
-                #self.writeToFile(u_parse )
+                self.writeToFile(domain, data.text)
 
                 if(self.pages <= self.total_pages):
                     for tag in soup.findAll('a', href=True):
@@ -52,12 +52,13 @@ class Spider():
                             self.url_sets.add(absolute_url)
                             links.append(absolute_url)
                             self.pages += 1
+
             except Exception:
                 pass
 
         return links
 
-    def writeToFile(self, domain_name, html):
+    def writeToFile(self, domain, html):
         pass
 
 

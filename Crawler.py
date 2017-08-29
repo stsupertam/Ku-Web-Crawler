@@ -24,13 +24,13 @@ class Spider():
         self.crawl([u_parse.path], self.max_depth)
 
     def crawl(self, urls, depth):
-       n_urls = set()
-       if(depth >= 0):
-           for url in urls:
-               print url
-               link = self.get_link(url)
-               n_urls = n_urls.union(link)
-           self.crawl(n_urls, depth - 1)
+        n_urls = set()
+        if(depth >= 0):
+            for url in urls:
+                link = self.get_link(url)
+                n_urls = n_urls.union(link)
+                print('DEPTH (%d) URL %s' % (depth, url))
+            self.crawl(n_urls, depth - 1)
        
     def get_link(self, url):
         links = []
@@ -42,14 +42,13 @@ class Spider():
 
             for tag in soup.findAll('a', href=True):
                 absolute_url = urljoin(self.domain, tag['href'])
+                #print absolute_url
                 if(absolute_url not in self.url_sets):
-                    print('URL : %s' % absolute_url)
-                    url_sets.add(absolute_url)
+                    #print('URL : %s' % absolute_url)
+                    self.url_sets.add(absolute_url)
                     links.append(absolute_url)
-
         except Exception:
             pass
-
         return links
 
 
@@ -57,4 +56,4 @@ class Spider():
 spider = Spider('https://stackoverflow.com/')
 spider.startCrawl()
 #spider = Spider('http://www.gconhub.com/?page=home', extractLinks)
-print('Crawl KU Successful')
+print('Crawl Stackoverflow Successful')

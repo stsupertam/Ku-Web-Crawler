@@ -9,7 +9,7 @@ import requests
 
 class Spider():
 
-    def __init__(self, url, max_depth = 2, total_pages = 50):
+    def __init__(self, url, max_depth = 2, total_pages = 10000):
         self.max_depth = max_depth
         self.url = url
         self.total_pages = total_pages

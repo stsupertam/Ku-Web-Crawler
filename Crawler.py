@@ -43,9 +43,9 @@ class Spider():
         
         if(tldextract.extract(self.domain).domain == tldextract.extract(domain).domain):
             try:
-                print('Retrieving [%s] %s' % (domain, url))
                 file_extension = url.split('.')[-1]
-                if(file_extension not in ['php', 'jpg', 'jpeg', 'png', 'gif']):
+                if(file_extension not in ['pdf', 'jpg', 'jpeg', 'png', 'gif']):
+                    print('Retrieving [%s] %s' % (domain, url))
                     data  = requests.get(('%s://%s%s' % (self.scheme, domain, url)), timeout=10)
                     soup = BeautifulSoup(data.text, 'lxml')
 
@@ -79,6 +79,7 @@ class Spider():
 
 start_time = time.time()
 site = 'http://www.ku.ac.th/web2012/index.php?c=adms&m=mainpage1'
+#site = 'https://stackoverflow.com'
 spider = Spider(site, 5, 15000)
 spider.startCrawl()
 print('Crawl [%s] Successful' % urlparse(site).netloc) 

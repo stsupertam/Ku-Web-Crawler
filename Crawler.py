@@ -1,12 +1,15 @@
+import os
+import hashlib
+import sys
+import requests
+import tldextract
 from bs4 import BeautifulSoup
 from urlparse import urlparse
 from urlparse import urljoin
-import tldextract
-import requests
 
 class Spider():
 
-    def __init__(self, url, max_depth = 2, total_pages = 10):
+    def __init__(self, url, max_depth = 2, total_pages = 100):
         self.max_depth = max_depth
         self.url = url
         self.total_pages = total_pages
@@ -39,27 +42,38 @@ class Spider():
         
         if(tldextract.extract(self.domain).domain == tldextract.extract(domain).domain):
             try:
-                print('Total (%d) [%s] %s' % (self.pages, domain, url))
+                print('Retrieving [%s] %s' % (self.pages, domain, url))
                 data  = requests.get(('%s://%s%s' % (self.scheme, domain, url)))
                 soup = BeautifulSoup(data.text, 'lxml')
 
-                self.writeToFile(domain, data.text)
+                self.writeToFile(domain, soup)
 
-                if(self.pages <= self.total_pages):
-                    for tag in soup.findAll('a', href=True):
-                        absolute_url = urljoin(self.domain, tag['href'])
-                        if(absolute_url not in self.url_sets):
+                for tag in soup.findAll('a', href=True):
+                    absolute_url = urljoin(self.domain, tag['href'])
+                    if(absolute_url not in self.url_sets):
+                        if(self.pages <= self.total_pages):
                             self.url_sets.add(absolute_url)
                             links.append(absolute_url)
                             self.pages += 1
 
             except Exception:
-                pass
+                print sys.exc_info()[0] 
 
         return links
 
-    def writeToFile(self, domain, html):
-        pass
+    def writeToFile(self, domain, soup):
+        directory = 'data/' + domain
+        if(not os.path.exists(directory)):
+            print('Create [%s] directory' % domain)
+            os.makedirs('data/' + domain)
+        
+        html = soup.prettify('utf-8')
+        h = hashlib.md5(html).hexdigest()
+        fileName = directory + '/' + h + '.html'
+        print('Create [%s] file' % h)
+        with open(fileName, "wb") as file:
+            file.write(html)
+
 
 
 spider = Spider('https://stackoverflow.com/')

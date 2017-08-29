@@ -44,7 +44,7 @@ class Spider():
         if(tldextract.extract(self.domain).domain == tldextract.extract(domain).domain):
             try:
                 file_extension = url.split('.')[-1]
-                if(file_extension not in ['pdf', 'jpg', 'jpeg', 'png', 'gif']):
+                if(file_extension.lower() not in ['pdf', 'jpg', 'jpeg', 'png', 'gif']):
                     print('Retrieving [%s] %s' % (domain, url))
                     data  = requests.get(('%s://%s%s' % (self.scheme, domain, url)), timeout=10)
                     soup = BeautifulSoup(data.text, 'lxml')

@@ -16,7 +16,7 @@ class Spider():
         self.total_pages = total_pages
         self.pages = 0
         self.total_file = 0
-        self.headers = {"Range": "bytes=0-100"}
+        self.acccpet_file = set(['text/html', 'application/xml', 'application/xhtml+xml'])
 
     def startCrawl(self):
         u_parse = urlparse(self.url)
@@ -45,21 +45,26 @@ class Spider():
         
         if(tldextract.extract(self.domain).domain == tldextract.extract(domain).domain):
             try:
-                file_extension = url.split('.')[-1]
-                if(file_extension.lower() not in ['pdf', 'jpg', 'jpeg', 'png', 'gif']):
-                    print('Retrieving [%s] %s' % (domain, url))
-                    data  = requests.get(('%s://%s%s' % (self.scheme, domain, url)), timeout=5, headers=self.headers)
-                    soup = BeautifulSoup(data.text, 'lxml')
+                print('Retrieving [%s] %s' % (domain, url))
+                data  = requests.get(('%s://%s%s' % (self.scheme, domain, url)), timeout=5)
+                content_type = data.headers['content-type'].split(';')[0]
+                status_code = data.status_code
+                soup = BeautifulSoup(data.text, 'lxml')
 
-                    self.writeToFile(domain, soup)
+                if(status_code != requests.codes.ok or content_type not in self.acccpet_file):
+                    print('Retrieving Failed')
+                    self.pages -= 1
+                    return links
 
-                    for tag in soup.findAll('a', href=True):
-                        absolute_url = urljoin(self.domain, tag['href'])
-                        if(absolute_url not in self.url_sets):
-                            if(self.pages <= self.total_pages):
-                                self.url_sets.add(absolute_url)
-                                links.append(absolute_url)
-                                self.pages += 1
+                self.writeToFile(domain, soup)
+
+                for tag in soup.findAll('a', href=True):
+                    absolute_url = urljoin(self.domain, tag['href'])
+                    if(absolute_url not in self.url_sets):
+                        if(self.pages <= self.total_pages):
+                            self.url_sets.add(absolute_url)
+                            links.append(absolute_url)
+                            self.pages += 1
 
             except Exception:
                 print sys.exc_info()[0] 
@@ -83,7 +88,7 @@ class Spider():
 start_time = time.time()
 site = 'http://www.ku.ac.th/web2012/index.php?c=adms&m=mainpage1'
 #site = 'https://stackoverflow.com'
-spider = Spider(site, 5, 15000)
+spider = Spider(site, 5, 150)
 spider.startCrawl()
 print('Crawl [%s] Successful' % urlparse(site).netloc) 
 print("--- %s seconds ---" % (time.time() - start_time))

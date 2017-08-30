@@ -67,6 +67,7 @@ class Spider():
                             self.pages += 1
 
             except Exception:
+                self.pages -= 1
                 print sys.exc_info()[0] 
 
         return links
@@ -88,7 +89,7 @@ class Spider():
 start_time = time.time()
 site = 'http://www.ku.ac.th/web2012/index.php?c=adms&m=mainpage1'
 #site = 'https://stackoverflow.com'
-spider = Spider(site, 5, 150)
+spider = Spider(site, 10, 10000)
 spider.startCrawl()
 print('Crawl [%s] Successful' % urlparse(site).netloc) 
 print("--- %s seconds ---" % (time.time() - start_time))

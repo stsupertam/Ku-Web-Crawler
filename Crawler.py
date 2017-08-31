@@ -2,6 +2,7 @@ import os
 import hashlib
 import time
 import sys
+import re
 import requests
 import tldextract
 from bs4 import BeautifulSoup
@@ -81,6 +82,11 @@ class Spider():
         return links
 
     def writeToFile(self, domain, soup):
+        split_domain = domain.split('.')
+        if(split_domain[0] == 'www'):
+            split_domain = split_domain[1:]
+            domain = str.join('.', split_domain)
+
         directory = 'data/' + domain
         if(not os.path.exists(directory)):
             print('Create directory : [%s]' % domain)

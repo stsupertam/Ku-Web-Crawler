@@ -7,6 +7,7 @@ import sys
 import requests
 import tldextract
 import urllib
+import robotparser
 from bs4 import BeautifulSoup
 from urlparse import urlparse
 from urlparse import urljoin
@@ -19,6 +20,8 @@ class Spider():
         self.total_pages = total_pages
         self.pages = 0
         self.files = 0
+        self.domain_sets = set()
+        self.domain_robots = {}
         self.accept_file = set(['text/html', 'application/xml', 'application/xhtml+xml'])
 
     def startCrawl(self):
@@ -31,7 +34,7 @@ class Spider():
     def crawl(self, urls, depth):
         n_urls = set()
         #print('Depth (%d)' % depth)
-        if(depth >= 0 or self.files <= self.total_pages):
+        if(depth >= 0):
             for url in urls:
                 link = self.get_link(url)
                 n_urls = n_urls.union(link)
@@ -51,9 +54,28 @@ class Spider():
         if(split_domain[0] == 'www'):
             split_domain = split_domain[1:]
             domain = str.join('.', split_domain)
-
+        
+        if(domain not in self.domain_sets):
+            self.domain_sets.add(domain)
+            try: 
+                robot = requests.get(('%s://%s/robots.txt' % (self.scheme, domain)), timeout=5)
+                robot_code = robot.status_code
+                if(robot_code == requests.codes.ok):
+                    print('Robots.txt Found [%s]' % (domain))
+                    self.domain_robots[domain] = True
+                    with open('./robotlists.txt', 'a') as file:
+                        file.write(domain + '\n')
+            except Exception:
+                print('Cannot Get Robots.txt [Error Exception : %s] [%s]' % (sys.exc_info()[0], domain, ))
+            
         if(tldextract.extract(self.domain).domain == tldextract.extract(domain).domain):
             #print('[Domain] [%s][%s]' % (domain, u_path))
+            if(domain in self.domain_robots):
+                rp = robotparser.RobotFileParser()
+                rp.set_url('%s://%s/robots.txt' % (self.scheme, domain))
+                rp.read()
+                if(not rp.can_fetch('*', ('%s://%s%s' % (self.scheme, domain, url)))):
+                    return links
             try:
                 req_header  = requests.head(('%s://%s%s' % (self.scheme, domain, url)), timeout=5)
                 content_type = req_header.headers['content-type'].split(';')[0]
@@ -118,14 +140,11 @@ class Spider():
                     os.makedirs(directory)
         return directory
 
-
-
 start_time = time.time()
 reload(sys)  
 sys.setdefaultencoding('utf8')
-#site = 'http://www.ku.ac.th/web2012/index.php?c=adms&m=mainpage1'
-site = 'http://council.ku.ac.th/ผู้บริหารและบุคลากร/'
-spider = Spider(site, 10, 5000)
+site = 'http://www.ku.ac.th/web2012/index.php?c=adms&m=mainpage1'
+spider = Spider(site, 30, 10000)
 spider.startCrawl()
 print('Crawl [%s] Successful' % urlparse(site).netloc)
-#print("--- %s seconds ---" % (time.time() - start_time))%
+print("--- %s seconds ---" % (time.time() - start_time))

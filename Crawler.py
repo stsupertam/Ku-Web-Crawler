@@ -1,9 +1,12 @@
+# -*- coding: utf-8 -*-
+
 import os
 import hashlib
 import time
 import sys
 import requests
 import tldextract
+import urllib
 from bs4 import BeautifulSoup
 from urlparse import urlparse
 from urlparse import urljoin
@@ -15,7 +18,7 @@ class Spider():
         self.url = url
         self.total_pages = total_pages
         self.pages = 0
-        self.total_file = 0
+        self.files = 0
         self.accept_file = set(['text/html', 'application/xml', 'application/xhtml+xml'])
 
     def startCrawl(self):
@@ -28,7 +31,7 @@ class Spider():
     def crawl(self, urls, depth):
         n_urls = set()
         #print('Depth (%d)' % depth)
-        if(depth >= 0):
+        if(depth >= 0 or self.files <= self.total_pages):
             for url in urls:
                 link = self.get_link(url)
                 n_urls = n_urls.union(link)
@@ -66,7 +69,7 @@ class Spider():
 
                     if(status_code != requests.codes.ok):
                         self.pages -= 1
-                        print('Retrieving [Failed] [Code : %d]' % status_code)
+                        print('Retrieving [Failed] [Code : %d] [%s] %s' % (status_code, domain, url))
                         return links
 
                     soup = BeautifulSoup(data.text, 'lxml')
@@ -83,7 +86,7 @@ class Spider():
 
             except Exception:
                 self.pages -= 1
-                print('Retrieving [Failed] [Error Exception : %s]' % sys.exc_info()[0])
+                print('Retrieving [Failed] [Error Exception : %s] [%s] %s' % (sys.exc_info()[0], domain, url))
 
         return links
 
@@ -92,13 +95,14 @@ class Spider():
         html = soup.prettify('utf-8')
         h = hashlib.md5(html).hexdigest()
         fileName = directory + '/' + h + '.html'
-        self.total_file += 1
-        print('Create file [%d] : [%s]' % (self.total_file, h))
+        self.files += 1
+        print('Create file [%d] : [%s]' % (self.files, h))
         with open(fileName, "wb") as file:
             file.write(html)
     
     def createDirectory(self, domain, path):
         directory = 'html/' + domain
+        path = urllib.unquote(path).decode('utf8')
         if(not os.path.exists(directory)):
             #print('Create directory : [%s]' % domain)
             os.makedirs(directory)
@@ -117,8 +121,11 @@ class Spider():
 
 
 start_time = time.time()
-site = 'http://www.ku.ac.th/web2012/index.php?c=adms&m=mainpage1'
-spider = Spider(site, 10, 10000)
+reload(sys)  
+sys.setdefaultencoding('utf8')
+#site = 'http://www.ku.ac.th/web2012/index.php?c=adms&m=mainpage1'
+site = 'http://council.ku.ac.th/ผู้บริหารและบุคลากร/'
+spider = Spider(site, 10, 5000)
 spider.startCrawl()
-#print('Crawl [%s] Successful' % urlparse(site).netloc)
+print('Crawl [%s] Successful' % urlparse(site).netloc)
 #print("--- %s seconds ---" % (time.time() - start_time))%

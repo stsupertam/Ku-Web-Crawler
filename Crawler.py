@@ -6,11 +6,11 @@ import time
 import sys
 import requests
 import tldextract
-import urllib
-import robotparser
 from bs4 import BeautifulSoup
-from urlparse import urlparse
-from urlparse import urljoin
+from urllib import robotparser
+from urllib.parse import urlparse
+from urllib.parse import urljoin
+from urllib.parse import unquote
 
 class Spider():
 
@@ -124,25 +124,20 @@ class Spider():
     
     def createDirectory(self, domain, path):
         directory = 'html/' + domain
-        path = urllib.unquote(path).decode('utf8')
-        if(not os.path.exists(directory)):
-            #print('Create directory : [%s]' % domain)
-            os.makedirs(directory)
+        path = unquote(path)
+        os.makedirs(directory, exist_ok=True)
 
         if(len(path) != 0 and len(path) != 1):
             path_split = path.split('/')
             if(path_split[0] == ''):
                 path_split.pop(0)
             path_split.pop(-1)
-            for item in path_split:
-                directory = directory + '/' + item
-                if(not os.path.exists(directory)):
-                    os.makedirs(directory)
+            path = str.join('/', path_split)
+            directory = directory + '/' + path
+            os.makedirs(directory, exist_ok=True)
         return directory
 
 start_time = time.time()
-reload(sys)  
-sys.setdefaultencoding('utf8')
 site = 'http://www.ku.ac.th/web2012/index.php?c=adms&m=mainpage1'
 spider = Spider(site, 30, 10000)
 spider.startCrawl()

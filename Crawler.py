@@ -2,6 +2,7 @@ import os
 import hashlib
 import time
 import sys
+import csv
 import requests
 import tldextract
 from bs4 import BeautifulSoup
@@ -12,7 +13,7 @@ from urllib.parse import unquote
 from colorama import init
 from colorama import Fore
 
-class Spider():
+class Spider:
 
     def __init__(self, url, max_depth = 2, total_pages = 100):
         self.max_depth = max_depth
@@ -81,7 +82,7 @@ class Spider():
                         return links
 
                     soup = BeautifulSoup(data.text, 'lxml')
-                    self.writeToFile(domain, u_path, soup)
+                    self.writeToFile(domain, u_path, url, soup)
                     print(Fore.GREEN + 'Retrieving [Success] [%s] %s' % (domain, url))
 
                     for tag in soup.findAll('a', href=True):
@@ -99,15 +100,38 @@ class Spider():
 
         return links
 
-    def writeToFile(self, domain, path, soup):
+    def writeHashMatching(self, directory, hash, url):
+        csvFile = directory + '/hash_matching.csv'
+        if(not os.path.isfile(csvFile)):
+            try:
+                with open(csvFile, 'w', newline='') as f:
+                    fieldnames = ['hash', 'url']
+                    writer = csv.writer(f)
+                    writer.writerow(fieldnames)
+            except Exception:
+                print(Fore.RED + 'Create new file error [Error Exception : %s]' % (sys.exc_info()[0]))
+        try:
+            with open(csvFile, 'a', newline='') as f:
+                fieldnames = [hash, url]
+                writer = csv.writer(f)
+                writer.writerow(fieldnames)
+        except Exception:
+            print(Fore.RED + 'Write hash to file error [Error Exception : %s]' % (sys.exc_info()[0]))
+
+    def writeToFile(self, domain, path, url, soup):
         directory = self.createDirectory(domain, path)
         html = soup.prettify('utf-8')
         h = hashlib.md5(html).hexdigest()
         fileName = directory + '/' + h + '.html'
+
+        self.writeHashMatching(directory, h, url)
         self.files += 1
         print(Fore.GREEN + 'Create file [%d] : [%s]' % (self.files, h))
-        with open(fileName, "wb") as file:
-            file.write(html)
+        try:
+            with open(fileName, "wb") as file:
+                file.write(html)
+        except Exception:
+            print(Fore.RED + 'Write to file error [Error Exception : %s]' % (sys.exc_info()[0]))
     
     def createDirectory(self, domain, path):
         directory = 'html/' + domain

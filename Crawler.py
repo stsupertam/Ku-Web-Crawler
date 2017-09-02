@@ -9,7 +9,8 @@ from urllib import robotparser
 from urllib.parse import urlparse
 from urllib.parse import urljoin
 from urllib.parse import unquote
-
+from colorama import init
+from colorama import Fore
 
 class Spider():
 
@@ -67,7 +68,7 @@ class Spider():
 
                 if(content_type not in self.accept_file):
                     self.pages -= 1
-                    print('Retrieving [Failed] [Content-type isn\'t in Accept file]')
+                    print(Fore.RED + 'Retrieving [Failed] [Content-type isn\'t in Accept file]')
                     return links
 
                 else:
@@ -76,24 +77,25 @@ class Spider():
 
                     if(status_code != requests.codes.ok):
                         self.pages -= 1
-                        print('Retrieving [Failed] [Code : %d] [%s] %s' % (status_code, domain, url))
+                        print(Fore.RED + 'Retrieving [Failed] [Code : %d] [%s] %s' % (status_code, domain, url))
                         return links
 
                     soup = BeautifulSoup(data.text, 'lxml')
                     self.writeToFile(domain, u_path, soup)
-                    print('Retrieving [Success] [%s] %s' % (domain, url))
+                    print(Fore.GREEN + 'Retrieving [Success] [%s] %s' % (domain, url))
 
                     for tag in soup.findAll('a', href=True):
-                        absolute_url = urljoin(self.domain, tag['href'])
-                        if(absolute_url not in self.url_sets):
-                            if(self.pages <= self.total_pages):
-                                self.url_sets.add(absolute_url)
-                                links.append(absolute_url)
-                                self.pages += 1
+                        if(tag['href'] != '#'):
+                            absolute_url = urljoin(self.domain, tag['href'])
+                            if(absolute_url not in self.url_sets):
+                                if(self.pages <= self.total_pages):
+                                    self.url_sets.add(absolute_url)
+                                    links.append(absolute_url)
+                                    self.pages += 1
 
             except Exception:
                 self.pages -= 1
-                print('Retrieving [Failed] [Error Exception : %s] [%s] %s' % (sys.exc_info()[0], domain, url))
+                print(Fore.RED + 'Retrieving [Failed] [Error Exception : %s] [%s] %s' % (sys.exc_info()[0], domain, url))
 
         return links
 
@@ -103,7 +105,7 @@ class Spider():
         h = hashlib.md5(html).hexdigest()
         fileName = directory + '/' + h + '.html'
         self.files += 1
-        print('Create file [%d] : [%s]' % (self.files, h))
+        print(Fore.GREEN + 'Create file [%d] : [%s]' % (self.files, h))
         with open(fileName, "wb") as file:
             file.write(html)
     
@@ -129,14 +131,14 @@ class Spider():
                 robot = requests.get(('%s://%s/robots.txt' % (self.scheme, domain)), timeout=5)
                 robot_code = robot.status_code
                 if(robot_code == requests.codes.ok):
-                    print('Robots.txt is Found in [%s]' % (domain))
+                    print(Fore.GREEN + 'Robots.txt is Found in [%s]' % (domain))
                     self.domain_robots[domain] = True
                     with open('./robotlists.txt', 'a') as file:
                         file.write(domain + '\n')
                 else:
-                    print('Couldn\'t Find Robots.txt [%s]' % (domain))
+                    print(Fore.RED + 'Couldn\'t Find Robots.txt [%s]' % (domain))
             except Exception:
-                print('Couldn\'t Get Robots.txt [Error Exception : %s] [%s]' % (sys.exc_info()[0], domain, ))
+                print(Fore.RED + 'Couldn\'t Get Robots.txt [Error Exception : %s] [%s]' % (sys.exc_info()[0], domain, ))
 
     def canFetchUrl(self, domain, url):
         if(domain in self.domain_robots):
@@ -149,14 +151,14 @@ class Spider():
                 else:
                     return True
             except Exception:
-                print('Couldn\'t Fetch Robots.txt [Error Exception : %s] [%s]' % (sys.exc_info()[0], domain, ))
+                print(Fore.RED + 'Couldn\'t Fetch Robots.txt [Error Exception : %s] [%s]' % (sys.exc_info()[0], domain))
                 return True
         else:
             return True
 
-start_time = time.time()
+
+init(autoreset=True)
 site = 'http://www.ku.ac.th/web2012/index.php?c=adms&m=mainpage1'
 spider = Spider(site, 30, 1000)
 spider.startCrawl()
-print('Crawl [%s] Successful' % urlparse(site).netloc)
-print("--- %s seconds ---" % (time.time() - start_time))
+print(Fore.GREEN + 'Crawl [%s] Successful' % urlparse(site).netloc)

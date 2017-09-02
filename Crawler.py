@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 import os
 import hashlib
 import time
@@ -11,6 +9,7 @@ from urllib import robotparser
 from urllib.parse import urlparse
 from urllib.parse import urljoin
 from urllib.parse import unquote
+
 
 class Spider():
 
@@ -55,27 +54,13 @@ class Spider():
             split_domain = split_domain[1:]
             domain = str.join('.', split_domain)
         
-        if(domain not in self.domain_sets):
-            self.domain_sets.add(domain)
-            try: 
-                robot = requests.get(('%s://%s/robots.txt' % (self.scheme, domain)), timeout=5)
-                robot_code = robot.status_code
-                if(robot_code == requests.codes.ok):
-                    print('Robots.txt Found [%s]' % (domain))
-                    self.domain_robots[domain] = True
-                    with open('./robotlists.txt', 'a') as file:
-                        file.write(domain + '\n')
-            except Exception:
-                print('Cannot Get Robots.txt [Error Exception : %s] [%s]' % (sys.exc_info()[0], domain, ))
-            
         if(tldextract.extract(self.domain).domain == tldextract.extract(domain).domain):
             #print('[Domain] [%s][%s]' % (domain, u_path))
-            if(domain in self.domain_robots):
-                rp = robotparser.RobotFileParser()
-                rp.set_url('%s://%s/robots.txt' % (self.scheme, domain))
-                rp.read()
-                if(not rp.can_fetch('*', ('%s://%s%s' % (self.scheme, domain, url)))):
-                    return links
+            self.writeRobotsToFile(domain)
+
+            if(not self.canFetchUrl(domain, url)):
+                return links
+
             try:
                 req_header  = requests.head(('%s://%s%s' % (self.scheme, domain, url)), timeout=5)
                 content_type = req_header.headers['content-type'].split(';')[0]
@@ -136,10 +121,42 @@ class Spider():
             directory = directory + '/' + path
             os.makedirs(directory, exist_ok=True)
         return directory
+    
+    def writeRobotsToFile(self, domain):
+        if(domain not in self.domain_sets):
+            self.domain_sets.add(domain)
+            try: 
+                robot = requests.get(('%s://%s/robots.txt' % (self.scheme, domain)), timeout=5)
+                robot_code = robot.status_code
+                if(robot_code == requests.codes.ok):
+                    print('Robots.txt is Found in [%s]' % (domain))
+                    self.domain_robots[domain] = True
+                    with open('./robotlists.txt', 'a') as file:
+                        file.write(domain + '\n')
+                else:
+                    print('Couldn\'t Find Robots.txt [%s]' % (domain))
+            except Exception:
+                print('Couldn\'t Get Robots.txt [Error Exception : %s] [%s]' % (sys.exc_info()[0], domain, ))
+
+    def canFetchUrl(self, domain, url):
+        if(domain in self.domain_robots):
+            try:
+                rp = robotparser.RobotFileParser()
+                rp.set_url('%s://%s/robots.txt' % (self.scheme, domain))
+                rp.read()
+                if(not rp.can_fetch('*', ('%s://%s%s' % (self.scheme, domain, url)))):
+                    return False
+                else:
+                    return True
+            except Exception:
+                print('Couldn\'t Fetch Robots.txt [Error Exception : %s] [%s]' % (sys.exc_info()[0], domain, ))
+                return True
+        else:
+            return True
 
 start_time = time.time()
 site = 'http://www.ku.ac.th/web2012/index.php?c=adms&m=mainpage1'
-spider = Spider(site, 30, 10000)
+spider = Spider(site, 30, 1000)
 spider.startCrawl()
 print('Crawl [%s] Successful' % urlparse(site).netloc)
 print("--- %s seconds ---" % (time.time() - start_time))

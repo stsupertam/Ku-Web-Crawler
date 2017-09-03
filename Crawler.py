@@ -3,6 +3,7 @@ import hashlib
 import time
 import sys
 import csv
+import re
 import requests
 import tldextract
 from bs4 import BeautifulSoup
@@ -16,6 +17,7 @@ from colorama import Fore
 class Spider:
 
     def __init__(self, url, max_depth = 2, total_pages = 100):
+        init(autoreset=True)
         self.max_depth = max_depth
         self.url = url
         self.total_pages = total_pages
@@ -52,7 +54,7 @@ class Spider:
         if(not domain):
             domain = self.domain
         split_domain = domain.split('.')
-        if(split_domain[0] == 'www'):
+        if(re.match('www.*', split_domain[0])):
             split_domain = split_domain[1:]
             domain = str.join('.', split_domain)
         
@@ -179,10 +181,3 @@ class Spider:
                 return True
         else:
             return True
-
-
-init(autoreset=True)
-site = 'http://www.ku.ac.th/web2012/index.php?c=adms&m=mainpage1'
-spider = Spider(site, 30, 1000)
-spider.startCrawl()
-print(Fore.GREEN + 'Crawl [%s] Successful' % urlparse(site).netloc)

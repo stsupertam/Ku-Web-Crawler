@@ -59,15 +59,14 @@ class Spider:
             #print('[Domain] [%s][%s]' % (domain, u_path))
             if(domain not in self.domain_sets):
                 self.domain_sets.add(domain)
-                self.domain_robots[domain] = True
-                self.writer.writeRobotsToFile(domain)
+                self.domain_robots = self.writer.writeRobotsToFile(domain, self.domain_robots)
 
             if(domain in self.domain_robots):
                 if(not self.robotParser.canFetchUrl(domain, url)):
                     return links
 
             try:
-                req_header  = requests.head(('%s://%s%s' % (self.scheme, domain, url)), timeout=5)
+                req_header  = requests.head(('%s://%s%s' % (self.scheme, domain, url)), timeout=(5,5))
                 content_type = req_header.headers['content-type'].split(';')[0]
 
                 if(content_type not in self.accept_file):
@@ -76,7 +75,7 @@ class Spider:
                     return links
 
                 else:
-                    data = requests.get(('%s://%s%s' % (self.scheme, domain, url)), timeout=5)
+                    data = requests.get(('%s://%s%s' % (self.scheme, domain, url)), timeout=(5,5))
                     status_code = data.status_code
 
                     if(status_code != requests.codes.ok):

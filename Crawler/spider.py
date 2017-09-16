@@ -1,23 +1,24 @@
 import os
-import hashlib
 import time
 import sys
 import csv
 import re
+import hashlib
 import requests
 import tldextract
+from colorama import init
+from colorama import Fore
 from bs4 import BeautifulSoup
-from urllib import robotparser
 from urllib.parse import urlparse
 from urllib.parse import urljoin
 from urllib.parse import unquote
-from colorama import init
-from colorama import Fore
+from .robotParser import RobotParser
 
 class Spider:
 
     def __init__(self, url, max_depth = 2, total_pages = 100):
         init(autoreset=True)
+        self.robotParser = RobotParser()
         self.max_depth = max_depth
         self.url = url
         self.total_pages = total_pages
@@ -57,13 +58,17 @@ class Spider:
         if(re.match('www.*', split_domain[0])):
             split_domain = split_domain[1:]
             domain = str.join('.', split_domain)
-        
+
         if(tldextract.extract(self.domain).domain == tldextract.extract(domain).domain):
             #print('[Domain] [%s][%s]' % (domain, u_path))
-            self.writeRobotsToFile(domain)
+            if(domain not in self.domain_sets):
+                self.domain_sets.add(domain)
+                self.domain_robots[domain] = True
+                self.robotParser.writeRobotsToFile(domain)
 
-            if(not self.canFetchUrl(domain, url)):
-                return links
+            if(domain in self.domain_robots):
+                if(not self.robotParser.canFetchUrl(domain, url)):
+                    return links
 
             try:
                 req_header  = requests.head(('%s://%s%s' % (self.scheme, domain, url)), timeout=5)
@@ -134,7 +139,7 @@ class Spider:
                 file.write(html)
         except Exception:
             print(Fore.RED + 'Write to file error [Error Exception : %s]' % (sys.exc_info()[0]))
-    
+
     def createDirectory(self, domain, path):
         directory = 'html/' + domain
         path = unquote(path)
@@ -149,35 +154,3 @@ class Spider:
             directory = directory + '/' + path
             os.makedirs(directory, exist_ok=True)
         return directory
-    
-    def writeRobotsToFile(self, domain):
-        if(domain not in self.domain_sets):
-            self.domain_sets.add(domain)
-            try: 
-                robot = requests.get(('%s://%s/robots.txt' % (self.scheme, domain)), timeout=5)
-                robot_code = robot.status_code
-                if(robot_code == requests.codes.ok):
-                    print(Fore.GREEN + 'Robots.txt is Found in [%s]' % (domain))
-                    self.domain_robots[domain] = True
-                    with open('./robotlists.txt', 'a') as file:
-                        file.write(domain + '\n')
-                else:
-                    print(Fore.RED + 'Couldn\'t Find Robots.txt [%s]' % (domain))
-            except Exception:
-                print(Fore.RED + 'Couldn\'t Get Robots.txt [Error Exception : %s] [%s]' % (sys.exc_info()[0], domain, ))
-
-    def canFetchUrl(self, domain, url):
-        if(domain in self.domain_robots):
-            try:
-                rp = robotparser.RobotFileParser()
-                rp.set_url('%s://%s/robots.txt' % (self.scheme, domain))
-                rp.read()
-                if(not rp.can_fetch('*', ('%s://%s%s' % (self.scheme, domain, url)))):
-                    return False
-                else:
-                    return True
-            except Exception:
-                print(Fore.RED + 'Couldn\'t Fetch Robots.txt [Error Exception : %s] [%s]' % (sys.exc_info()[0], domain))
-                return True
-        else:
-            return True

@@ -106,3 +106,5 @@ ENV/
 data*
 .env
 *.csv
+html/
+robotlists.txt

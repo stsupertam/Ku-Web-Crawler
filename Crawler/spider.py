@@ -59,7 +59,7 @@ class Spider:
             #print('[Domain] [%s][%s]' % (domain, u_path))
             if(domain not in self.domain_sets):
                 self.domain_sets.add(domain)
-                self.domain_robots = self.writer.writeRobotsToFile(domain, self.domain_robots)
+                self.domain_robots = self.writer.writeRobotsToFile(domain, self.domain_robots, self.scheme)
 
             if(domain in self.domain_robots):
                 if(not self.robotParser.canFetchUrl(domain, url)):

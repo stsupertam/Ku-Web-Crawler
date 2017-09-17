@@ -15,9 +15,9 @@ class Writer:
         init(autoreset=True)
         self.files = 0
 
-    def writeRobotsToFile(self, domain, domain_robots):
+    def writeRobotsToFile(self, domain, domain_robots, scheme):
         try:
-            robot = requests.get(('%s://%s/robots.txt' % (self.scheme, domain)), timeout=(5,5))
+            robot = requests.get(('%s://%s/robots.txt' % (scheme, domain)), timeout=(5,5))
             robot_code = robot.status_code
             if(robot_code == requests.codes.ok):
                 domain_robots[domain] = True

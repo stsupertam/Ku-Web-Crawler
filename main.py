@@ -5,7 +5,7 @@ from urllib.parse import urlparse
 
 def main():
     site = 'http://www.ku.ac.th/web2012/index.php?c=adms&m=mainpage1'
-    spider = Spider(site, 100, 30000)
+    spider = Spider(site, 100, 100)
     spider.startCrawl()
     print('Crawl [%s] Successful' % urlparse(site).netloc)
 

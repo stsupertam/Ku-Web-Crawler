@@ -36,7 +36,10 @@ class Spider:
         #print('Depth (%d)' % depth)
         if(depth >= 0):
             for url in urls:
-                link = self.get_link(url)
+                if(self.writer.files <= self.total_pages):
+                    link = self.get_link(url)
+                else:
+                    link = []
                 n_urls = n_urls.union(link)
             self.crawl(n_urls, depth - 1)
 
@@ -67,37 +70,44 @@ class Spider:
 
             try:
                 req_header  = requests.head(('%s://%s%s' % (self.scheme, domain, url)), timeout=(5,5))
-                content_type = req_header.headers['content-type'].split(';')[0]
+            except Exception:
+                print(Fore.RED + 'Retrieving [Failed] [Error Exception : %s] [%s] %s' % (sys.exc_info()[0], domain, url))
+                return links
 
-                if(content_type not in self.accept_file):
-                    self.pages -= 1
-                    print(Fore.RED + 'Retrieving [Failed] [Content-type isn\'t in Accept file]')
+            if('content-type' not in req_header.headers):
+                print(Fore.RED + 'Retrieving [Failed] [Content-type isn\'t in request]')
+                return links
+
+            content_type = req_header.headers['content-type'].split(';')[0]
+
+            if(content_type not in self.accept_file):
+                self.pages -= 1
+                print(Fore.RED + 'Retrieving [Failed] [Content-type isn\'t in Accept file]')
+                return links
+
+            else:
+                try:
+                    data = requests.get(('%s://%s%s' % (self.scheme, domain, url)), timeout=(5,5))
+                except Exception:
+                    print(Fore.RED + 'Retrieving [Failed] [Error Exception : %s] [%s] %s' % (sys.exc_info()[0], domain, url))
                     return links
 
-                else:
-                    data = requests.get(('%s://%s%s' % (self.scheme, domain, url)), timeout=(5,5))
-                    status_code = data.status_code
+                status_code = data.status_code
 
-                    if(status_code != requests.codes.ok):
-                        self.pages -= 1
-                        print(Fore.RED + 'Retrieving [Failed] [Code : %d] [%s] %s' % (status_code, domain, url))
-                        return links
+                if(status_code != requests.codes.ok):
+                    print(Fore.RED + 'Retrieving [Failed] [Code : %d] [%s] %s' % (status_code, domain, url))
+                    return links
 
-                    soup = BeautifulSoup(data.text, 'lxml')
-                    self.writer.writeToFile(domain, u_path, url, soup)
-                    print(Fore.GREEN + 'Retrieving [Success] [%s] %s' % (domain, url))
+                soup = BeautifulSoup(data.text, 'lxml')
+                self.writer.writeToFile(domain, u_path, soup)
+                print(Fore.GREEN + 'Retrieving [Success] [%s] %s %d/%d' % (domain, url, self.writer.files, self.total_pages))
 
-                    for tag in soup.findAll('a', href=True):
-                        if(tag['href'] != '#'):
-                            absolute_url = urljoin(self.domain, tag['href'])
-                            if(absolute_url not in self.url_sets):
-                                if(self.pages <= self.total_pages):
-                                    self.url_sets.add(absolute_url)
-                                    links.append(absolute_url)
-                                    self.pages += 1
-
-            except Exception:
-                self.pages -= 1
-                print(Fore.RED + 'Retrieving [Failed] [Error Exception : %s] [%s] %s' % (sys.exc_info()[0], domain, url))
+                for tag in soup.findAll('a', href=True):
+                    if(tag['href'] != '#'):
+                        absolute_url = urljoin(self.domain, tag['href'])
+                        if(absolute_url not in self.url_sets):
+                            if(self.writer.files <= self.total_pages):
+                                self.url_sets.add(absolute_url)
+                                links.append(absolute_url)
 
         return links

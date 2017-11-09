@@ -21,4 +21,4 @@ class RobotParser():
                 return True
         except Exception:
             print(Fore.RED + 'Couldn\'t Fetch Robots.txt [Error Exception : %s] [%s]' % (sys.exc_info()[0], domain))
-            return True
+            return False

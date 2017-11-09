@@ -30,50 +30,55 @@ class Writer:
             print(Fore.RED + 'Couldn\'t Get Robots.txt [Error Exception : %s] [%s]' % (sys.exc_info()[0], domain))
         return domain_robots
 
-    def writeHashMatching(self, directory, hash, url):
-        csvFile = directory + '/hash_matching.csv'
-        if(not os.path.isfile(csvFile)):
-            try:
-                with open(csvFile, 'w', newline='') as f:
-                    fieldnames = ['hash', 'url']
-                    writer = csv.writer(f)
-                    writer.writerow(fieldnames)
-            except Exception:
-                print(Fore.RED + 'Create new file error [Error Exception : %s]' % (sys.exc_info()[0]))
-        try:
-            with open(csvFile, 'a', newline='') as f:
-                fieldnames = [hash, url]
-                writer = csv.writer(f)
-                writer.writerow(fieldnames)
-        except Exception:
-            print(Fore.RED + 'Write hash to file error [Error Exception : %s]' % (sys.exc_info()[0]))
-
-    def writeToFile(self, domain, path, url, soup):
-        directory = self.createDirectory(domain, path)
+    def writeToFile(self, domain, path, soup):
         html = soup.prettify('utf-8')
-        h = hashlib.md5(html).hexdigest()
-        fileName = directory + '/' + h + '.html'
 
-        self.writeHashMatching(directory, h, url)
-        self.files += 1
-        print(Fore.GREEN + 'Create file [%d] : [%s]' % (self.files, h))
+        if(path == '' or path == '/'):
+            html_file = 'index.html'
+        else:
+            if(path[0] == '/'):
+                path = path[1:]
+            if(path[-1] == '/'):
+                path = path[0:len(path) - 1]
+
+        path_split = path.split('/')
+        html_file = path_split[-1]
+
+        if('.' in html_file):
+            path_split.pop(-1)
+        else:
+            html_file = 'index.html'
+
+        path = str.join('/', path_split)
+        directory = self.createDirectory(domain, path)
+
+        fileName = directory + '/' + html_file
+
+        print(Fore.GREEN + 'Create file in [%s] [%s] : [%s]' % (directory, fileName, path))
         try:
             with open(fileName, "wb") as file:
                 file.write(html)
+                self.files += 1
         except Exception:
             print(Fore.RED + 'Write to file error [Error Exception : %s]' % (sys.exc_info()[0]))
 
     def createDirectory(self, domain, path):
         directory = 'html/' + domain
         path = unquote(path)
+        print(Fore.GREEN + 'Path [%s]' % (path))
         os.makedirs(directory, exist_ok=True)
 
         if(len(path) != 0 and len(path) != 1):
             path_split = path.split('/')
             if(path_split[0] == ''):
                 path_split.pop(0)
-            path_split.pop(-1)
+            elif(path_split[-1] == ''):
+                path_split.pop(-1)
             path = str.join('/', path_split)
-            directory = directory + '/' + path
+            if(path == '' or path == '/'):
+                directory = directory
+            else:
+                directory = directory + '/' + path
             os.makedirs(directory, exist_ok=True)
         return directory
+

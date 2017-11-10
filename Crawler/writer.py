@@ -82,6 +82,9 @@ class Writer:
                 directory = directory
             else:
                 directory = directory + '/' + path
-            os.makedirs(directory, exist_ok=True)
+            try:
+                os.makedirs(directory, exist_ok=True)
+            except Exception:
+                print(Fore.RED + 'Create Directory error [Error Exception : %s]' % (sys.exc_info()[0]))
         return directory
 

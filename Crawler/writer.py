@@ -31,7 +31,11 @@ class Writer:
         return domain_robots
 
     def writeToFile(self, domain, path, soup):
-        html = soup.prettify('utf-8')
+        try:
+            html = soup.prettify('utf-8')
+        except Exception:
+            print(Fore.RED + 'Soup Error [Error Exception : %s] [%s]' % (sys.exc_info()[0], domain))
+            return
 
         if(path == '' or path == '/'):
             html_file = 'index.html'
@@ -65,7 +69,6 @@ class Writer:
     def createDirectory(self, domain, path):
         directory = 'html/' + domain
         path = unquote(path)
-        print(Fore.GREEN + 'Path [%s]' % (path))
         os.makedirs(directory, exist_ok=True)
 
         if(len(path) != 0 and len(path) != 1):
